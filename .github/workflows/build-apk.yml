@@ -1,1 +1,27 @@
 
+name: Build S CINEMA APK
+
+on: [push, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get source
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Check files
+        run: ls -la
+
+      - name: Find project ZIP
+        run: |
+          find . -maxdepth 2 -type f -name '*.zip' -print
