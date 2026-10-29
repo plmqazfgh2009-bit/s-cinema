@@ -31,10 +31,25 @@ jobs:
         run: |
           sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Extract source
+      - name: Find and extract source
         run: |
-          unzip -q S-CINEMA-TMDB-UPDATED-SOURCE.zip -d source
-          test -f source/CINEMA-X-Android/settings.gradle
+          ZIP_FILE="$(find . -type f -iname '*.zip' -not -path './.git/*' -print -quit)"
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: No ZIP file found in repository."
+            echo "Upload the S CINEMA source ZIP to the repository first."
+            exit 1
+          fi
+
+          echo "Found source archive: $ZIP_FILE"
+          mkdir -p source
+          unzip -q "$ZIP_FILE" -d source
+
+          if [ ! -f source/CINEMA-X-Android/settings.gradle ]; then
+            echo "ERROR: Expected Android project was not found in ZIP."
+            find source -name settings.gradle -print
+            exit 1
+          fi
 
       - name: Build APK
         run: |
