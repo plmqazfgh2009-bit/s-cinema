@@ -13,48 +13,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get source
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Extract project ZIP
-        run: |
-          ZIP=$(find . -maxdepth 2 -type f -name '*.zip' | head -n 1)
-          if [ -z "$ZIP" ]; then
-            echo "ERROR: Project ZIP not found"
-            exit 1
-          fi
-          mkdir project
-          unzip -q "$ZIP" -d project
-          echo "Project files:"
-          find project -maxdepth 3 -type f | head -100
-
-      - name: Find Android Gradle project
-        id: gradle
-        run: |
-          FILE=$(find project -name gradlew -type f | head -n 1)
-          if [ -z "$FILE" ]; then
-            echo "ERROR: No gradlew found. ZIP may not contain a buildable Android project."
-            exit 1
-          fi
-          echo "dir=$(dirname "$FILE")" >> "$GITHUB_OUTPUT"
-
-      - name: Install Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      - name: Build APK
-        working-directory: .
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build S CINEMA
         run: |
-          cd "${{ steps.gradle.outputs.dir }}"
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          cd CINEMA-X-Android
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: S-CINEMA-APK
-          path: project/**/build/outputs/apk/**/*.apk
+          path: CINEMA-X-Android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
